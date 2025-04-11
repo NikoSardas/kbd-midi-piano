@@ -1,0 +1,310 @@
+<!doctype html>
+<html>
+  <head>
+    <title>K2MP</title>
+    <link rel="stylesheet" href="style/css/jquery.modal.min.css" />
+    <link rel="stylesheet" href="style/css/style.css" />
+    <link rel="stylesheet" href="style/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="style/fonts/tfb.css" />
+  </head>
+
+  <body>
+    <div id="loadingCont">
+      <div id="loadingBar"></div>
+      <div id="loading"></div>
+    </div>
+    <div id="pianoWrapper">
+      <div style="display: flex; flex-flow: row">
+        <audio controls id="KBD_Piano_audioControls" autoplay loop></audio>
+      </div>
+      <div id="topPanel">
+        <!-- col -->
+        <div class="panelColumn speaker">
+          <div class="inner"></div>
+        </div>
+        <div class="panelColumn buttons">
+          <div id="click" class="btn btn-blue">
+            <div class="inner"><i class="fa fa-bolt"></i>CLICK</div>
+            <div id="metronome" style="display: none"></div>
+          </div>
+
+          <div id="sustain" class="btn btn-cyan">
+            <div class="inner"><i class="fa fa-hand-stop-o"></i>SUSTAIN</div>
+          </div>
+
+          <div class="btn btn-cyan" id="reset" style="display: none">
+            <div class="inner"><i class="fa fa-refresh"></i>RESET</div>
+          </div>
+        </div>
+        <div id="vel" class="panelColumn display">
+          <div id="velTop" class="top">
+            <div id="velocityTitle" class="">VEL</div>
+            <div id="velocityValue" class="">100</div>
+            <div id="velControls">
+              <div id="velUp" class="fa fa-caret-up"></div>
+              <div id="velDown" class="fa fa-caret-down"></div>
+            </div>
+            <div id="rndVel">RND</div>
+          </div>
+
+          <div class="bottom">
+            <div id="octaveDiv">
+              <div id="oct1" class="oct">1</div>
+              <div id="oct2" class="oct">2</div>
+              <div id="oct3" class="oct selected">3</div>
+              <div id="oct4" class="oct">4</div>
+            </div>
+
+            <div id="audioLoaderDiv">
+              <i id="audioLoader" class="fa fa-file-sound-o"> </i>
+              <input
+                id="KBD_Piano_audioFile"
+                type="file"
+                style="display: none"
+              />
+            </div>
+
+            <div id="midiDiv">
+              <select id="midiDevices"></select>
+            </div>
+          </div>
+        </div>
+        <div class="panelColumn buttons">
+          <div id="rec" class="btn btn-red">
+            <div class="inner">
+              <i class="fa fa-microphone default"></i
+              ><i class="fa fa-stop active"></i><span class="default">MIC</span
+              ><span class="active">STOP</span>
+            </div>
+          </div>
+          <div id="recStreamBtn" class="btn btn-red">
+            <div class="inner">
+              <i class="fa fa-circle default"></i
+              ><i class="fa fa-stop active"></i
+              ><span class="default">RECORD</span
+              ><span class="active">STOP</span>
+            </div>
+          </div>
+
+          <div class="btn btn-blue" id="save">
+            <div class="inner">
+              <i class="fa fa-save" id="saveFa" style="color: gray"></i>SAVE
+            </div>
+          </div>
+        </div>
+        <div class="panelColumn speaker">
+          <div class="inner"></div>
+        </div>
+      </div>
+      <div id="bottom">
+        <div id="kbd">
+          <div id="keys">
+            <div id="z" class="note white">
+              <div class="keyCommand">Z</div>
+
+              <div class="noteName">C</div>
+
+              <div id="s" class="note black">
+                <div class="keyCommand">S</div>
+
+                <div class="noteName">C#</div>
+              </div>
+            </div>
+            <div id="x" class="note white">
+              <div class="keyCommand key_fix">X</div>
+
+              <div class="noteName">D</div>
+
+              <div id="d" class="note black">
+                <div class="keyCommand">D</div>
+
+                <div class="noteName">D#</div>
+              </div>
+            </div>
+            <div id="c" class="note white">
+              <div class="keyCommand key_fix">C</div>
+
+              <div class="noteName">E</div>
+            </div>
+            <div id="v" class="note white">
+              <div class="keyCommand">V</div>
+
+              <div class="noteName">F</div>
+
+              <div id="g" class="note black">
+                <div class="keyCommand">G</div>
+
+                <div class="noteName">F#</div>
+              </div>
+            </div>
+            <div id="b" class="note white">
+              <div class="keyCommand key_fix">B</div>
+
+              <div class="noteName">G</div>
+
+              <div id="h" class="note black">
+                <div class="keyCommand">H</div>
+
+                <div class="noteName">G#</div>
+              </div>
+            </div>
+            <div id="n" class="note white">
+              <div class="keyCommand key_fix">N</div>
+
+              <div class="noteName">A</div>
+
+              <div id="j" class="note black">
+                <div class="keyCommand">J</div>
+
+                <div class="noteName">A#</div>
+              </div>
+            </div>
+            <div id="m" class="note white">
+              <div class="keyCommand key_fix">M</div>
+
+              <div class="noteName">B</div>
+            </div>
+            <div id="comma" class="note white">
+              <div class="keyCommand">,</div>
+
+              <div class="noteName">C</div>
+
+              <div id="l" class="note black">
+                <div class="keyCommand">L</div>
+
+                <div class="noteName">C#</div>
+              </div>
+            </div>
+            <div id="dot" class="note white">
+              <div class="keyCommand key_fix">.</div>
+
+              <div class="noteName">D</div>
+
+              <div id="semicolon" class="note black">
+                <div class="keyCommand">;</div>
+
+                <div class="noteName">D#</div>
+              </div>
+            </div>
+            <div id="slash" class="note white">
+              <div class="keyCommand key_fix">/</div>
+
+              <div class="noteName">E</div>
+            </div>
+            <div id="q" class="note white">
+              <div class="keyCommand">Q</div>
+
+              <div class="noteName">F</div>
+
+              <div id="two" class="note black">
+                <div class="keyCommand">2</div>
+
+                <div class="noteName">F#</div>
+              </div>
+            </div>
+            <div id="w" class="note white">
+              <div class="keyCommand key_fix">W</div>
+
+              <div class="noteName">G</div>
+
+              <div id="three" class="note black">
+                <div class="keyCommand">3</div>
+
+                <div class="noteName">G#</div>
+              </div>
+            </div>
+            <div id="e" class="note white">
+              <div class="keyCommand key_fix">E</div>
+
+              <div class="noteName">A</div>
+
+              <div id="four" class="note black">
+                <div class="keyCommand">4</div>
+
+                <div class="noteName">A#</div>
+              </div>
+            </div>
+            <div id="r" class="note white">
+              <div class="keyCommand key_fix">R</div>
+
+              <div class="noteName">B</div>
+            </div>
+            <div id="t" class="note white">
+              <div class="keyCommand">T</div>
+
+              <div class="noteName">C</div>
+
+              <div id="six" class="note black">
+                <div class="keyCommand">6</div>
+
+                <div class="noteName">C#</div>
+              </div>
+            </div>
+            <div id="y" class="note white">
+              <div class="keyCommand key_fix">Y</div>
+
+              <div class="noteName">D</div>
+
+              <div id="seven" class="note black">
+                <div class="keyCommand">7</div>
+
+                <div class="noteName">D#</div>
+              </div>
+            </div>
+            <div id="u" class="note white">
+              <div class="keyCommand key_fix">U</div>
+
+              <div class="noteName">E</div>
+            </div>
+            <div id="i" class="note white">
+              <div class="keyCommand">I</div>
+
+              <div class="noteName">F</div>
+
+              <div id="nine" class="note black">
+                <div class="keyCommand">9</div>
+
+                <div class="noteName">F#</div>
+              </div>
+            </div>
+            <div id="o" class="note white">
+              <div class="keyCommand key_fix">O</div>
+
+              <div class="noteName">G</div>
+
+              <div id="zero" class="note black">
+                <div class="keyCommand">0</div>
+
+                <div class="noteName">G#</div>
+              </div>
+            </div>
+            <div id="p" class="note white">
+              <div class="keyCommand key_fix">P</div>
+
+              <div class="noteName">A</div>
+
+              <div id="minus" class="note black">
+                <div class="keyCommand">-</div>
+
+                <div class="noteName">A#</div>
+              </div>
+            </div>
+            <div id="leftBrk" class="note white">
+              <div class="keyCommand key_fix">[</div>
+
+              <div class="noteName">B</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="version"></div>
+    </div>
+
+    <script src="js/mousetrap.min.js"></script>
+    <script src="js/WebAudioRecorder.min.js"></script>
+    <script src="js/midi.js"></script>
+    <script src="js/fifer.min.js"></script>
+    <script src="js/howler.min.js"></script>
+    <script src="js/src/popup.js"></script>
+  </body>
+</html>

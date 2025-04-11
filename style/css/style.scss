@@ -1,0 +1,592 @@
+// FUNCTIONS
+// ----------------------------------
+
+// Shading functions
+@function tint($color, $pc) {
+  @return mix(white, $color, $pc);
+}
+
+@function shade($color, $pc) {
+  @return mix(black, $color, $pc);
+}
+
+// VARIABLES
+// ----------------------------------
+$bg-color: tint(#000, 20%);
+$bg: darken(#4F5864, 10%);
+$bg-d: darken($bg, 5%);
+$bg-xd: darken($bg, 10%);
+$bg-2xd: darken($bg, 20%);
+$bg-l: lighten($bg, 5%);
+$bg-xl: lighten($bg, 10%);
+$btn-color: lighten($bg, 10%);
+$key-color: tint(#000, 10%);
+$black-key: darken($bg, 15%);
+$black-key-d: darken($black-key, 5%);
+$black-key-l: lighten($black-key, 7%);
+$black-key-shadow: darken($black-key, 5%);
+$white-key: #E9E9E9;
+$white-key-l: lighten($white-key, 5%);
+$white-key-d: darken($white-key, 5%);
+$disp-color: rgba(#000, 0.4);
+$disp-bg: #73B0DF;
+$disp-bg: #62bdea;
+$disp-bg-l: lighten($disp-bg, 5%);
+$disp-bg-d: darken($disp-bg, 5%);
+$pcolor: #26FFFF;
+$red: #FA3635;
+$amber: #FFC107;
+$orange: #FF5722;
+$lime: #CDDC39;
+$blue: #10F9F6;
+$purp: #EF48E0;
+$cyan: #00BCD4;
+
+$btn-colors: (
+        red: #FA3635,
+        amber: #FFC107,
+        orange:#FF5722,
+        lime:#CDDC39,
+        blue:#10F9F6,
+        purp: #EF48E0,
+        cyan:#00BCD4
+);
+
+.digi-font {
+  font-family: 'tfb';
+}
+
+* {
+  -webkit-user-select: none;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+select {
+  background: transparent;
+  border: none;
+  -webkit-appearance: none;
+
+}
+
+*:enabled {
+}
+
+*:focus, *:active {
+  border: none;
+}
+
+/* LAYOUT
+----------------------------------- */
+html {
+  height: 100%;
+}
+
+body {
+  font-size: 1.5vw;
+  font-family: monospace;
+  background: $bg;
+  padding: 0;
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+#pianoWrapper {
+
+  flex: 1;
+  flex-flow: column;
+  display: none;
+
+}
+
+.btn {
+  margin: 0 3px;
+  width: 27%;
+  padding-top: 27%;
+  background: linear-gradient(lighten($btn-color, 7%), $btn-color);
+  box-shadow: inset 0 1px 0 rgba(#fff, 0.1), 0 1px 1px 0 rgba(#000, 0.2), 0 1px 5px rgba(#000, 0.1);
+  border-radius: 1px;
+  color: #fff;
+  position: relative;
+  border-bottom: 3px solid rgba(#000, 0.5);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+
+  &:before {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-image: radial-gradient(rgba(#fff, 0.1), rgba(#fff, 0.1));
+    transition: all 0.3s;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  &:hover:before, &:visited {
+    opacity: 1;
+  }
+
+  .inner {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    font-weight: normal;
+    font-size: 11px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    pointer-events: none;
+
+    i {
+      display: block;
+      font-size: 2.2em;
+      margin-bottom: 0.2em;
+    }
+
+    .active {
+      display: none
+    }
+  }
+
+  &.on, &:active {
+    top: 2px;
+    border-bottom-width: 1px;
+    box-shadow: inset 0 1px 0 rgba(#fff, 0.1), 0 1px 1px 0 rgba(#000, 0.2), 0 1px 3px rgba(#000, 0.1);
+    color: #fff;
+
+    .inner {
+      i {
+        color: #fff;
+      }
+
+      .default {
+        display: none
+      }
+      .active {
+        display: block
+      }
+    }
+  }
+
+  @media (max-width: 700px) {
+    .inner {
+      font-size: 10px;
+
+      i {
+        font-size: 1.6em;
+      }
+    }
+  }
+}
+
+#loadingCont {
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+  font-weight: normal;
+  color: #fff;
+  align-items: center;
+  justify-content: center;
+}
+
+#loadingBar {
+  background-color: rgba(#fff, 0.1);
+  background-image: linear-gradient(to right, $amber, yellow);
+  background-position: 0;
+  background-repeat: no-repeat;
+  background-size: 0;
+  width: 200px;
+  height: 10px;
+  margin-bottom: 30px;
+}
+
+/* TOP
+----------------------------------- */
+#topPanel {
+  font-weight: normal;
+  display: flex;
+  background: linear-gradient(-60deg, $bg, $bg-l, $bg-d 70%);
+  height: 30%;
+  color: white;
+  padding: 20px;
+  align-items: center;
+
+  @media (max-height: 400px) {
+    padding: 15px;
+    height: 35%;
+  }
+}
+
+.buttons {
+  width: 30%;
+}
+
+.display {
+  width: 20%;
+}
+
+.speaker {
+  width: 10%;
+  height: 100%;
+  .inner {
+    height: 100%;
+    width: 100%;
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAGklEQVQIW2NkYGD4D8SMQAwGcAY2AbBKDBUAVuYCBQPd34sAAAAASUVORK5CYII=);
+  }
+}
+
+@media (max-width: 860px) {
+  .buttons {
+    width: 35%;
+  }
+
+  .display {
+    width: 30%;
+  }
+
+  .speaker {
+    width: 0%;
+  }
+}
+
+.buttons {
+  display: flex;
+}
+
+#octaveSelector {
+  align-items: stretch;
+  display: flex;
+}
+
+#octaveSelector div {
+  display: flex;
+  justify-content: center;
+}
+
+.oct {
+  cursor: pointer;
+  flex: 1;
+  display: flex;
+  padding: 5px 0;
+  color: rgba(#fff, 0.5);
+
+  &:hover {
+    color: #fff;
+  }
+}
+
+.selected {
+
+  color: cyan;
+}
+
+.panelColumn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+/* DISPLAY
+----------------------------------- */
+#vel {
+  display: flex;
+  flex-flow: column;
+  height: 100%;
+  padding: 15px 15px 0 15px;
+  background: linear-gradient(60deg, $bg-xd, $bg, $bg-xd);
+  box-shadow: inset 0 0 0 1px rgba(#fff, 0.2);
+  border-radius: 0 0 3px 3px;
+
+  > div {
+    display: flex;
+    align-items: center;
+  }
+
+  .top {
+    background: linear-gradient(60deg, $disp-bg, $disp-bg-l, $disp-bg);
+    box-shadow: 0 0 10px 5px rgba($disp-bg, 0.1), inset 0 0 40px 0 rgba(#000, 0.5), inset 0 0 1px 0 rgba(#000, 0.5);
+    width: 100%;
+    flex: 1;
+    justify-content: center;
+    border-style: solid;
+    border-width: 1px;
+    border-color: rgba(#fff, 0.1) rgba(#fff, 0.05);
+    padding: 0 10px;
+
+    > div {
+      display: flex;
+      align-items: centre;
+    }
+  }
+
+  .bottom {
+    padding: 10px;
+    width: 100%;
+    font-size: 12px;
+    height: 30%;
+
+    > div {
+      display: flex;
+      align-items: centre;
+      fex-direction: row;
+    }
+  }
+
+  @media (max-height: 500px) {
+    .bottom {
+      height: 45%;
+    }
+  }
+
+}
+
+#velControls {
+  flex-direction: column;
+  padding-right: 10px;
+  div {
+    font-size: 25px;
+    line-height: 0.6em;
+    cursor: pointer;
+    color: rgba(#000, 0.4);
+
+    &:hover, &:active {
+      color: #fff;
+    }
+  }
+}
+
+#rndVel {
+  cursor: pointer;
+  background: #eee;
+  color: $bg;
+  font-size: 10px;
+  line-height: 1em;
+  padding: 5px 7px;
+  text-align: center;
+  border-radius: 1px;
+  box-shadow: 0 2px 2px rgba(#000, 0.15);
+  border-bottom: 1px solid rgba(#000, 0.1);
+
+  &.on {
+    border-bottom-width: 0;
+    box-shadow: inset 0 1px 2px rgba(#000, 0.2), 0 -1px 0 rgba(#fff, 0.3);
+    background: shade(#eee, 5%);
+    margin-top: 2px;
+  }
+
+  @media (max-width: 600px) {
+    padding: 3px;
+  }
+}
+
+#velocityValue {
+  color: $disp-color;
+  font-size: 40px;
+  font-family: 'tfb';
+  margin: 0 10px;
+  width: 35px;
+  justify-content: flex-end;
+
+  @media (max-width: 600px) {
+    font-size: 30px;
+  }
+}
+
+#velocityTitle {
+  @media (max-width: 600px) {
+    display: none;
+  }
+}
+
+#octaveDiv {
+  flex: 1;
+  justify-content: flex-start;
+}
+
+#stretch {
+  flex: none;
+  cursor: pointer;
+  padding: 3px;
+
+  i {
+    pointer-events: none;
+  }
+  &:hover {
+    color: lime;
+  }
+}
+
+/* BOTTOM
+----------------------------------- */
+#bottom {
+  display: flex;
+  flex: 1;
+  background: linear-gradient(-60deg, $bg-xd, $bg-l, $bg-d, $bg-xd 70%);
+  padding: 60px 30px 15px 30px;
+
+  @media (max-height: 400px) {
+    padding-top: 40px;
+  }
+}
+
+#kbd {
+
+  overflow: hidden;
+  display: flex;
+  flex: 1;
+
+}
+
+#keys {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  background: rgba(#000, 0.2);
+  padding: 10px;
+  box-shadow: inset 0 0 0 1px rgba(#fff, 0.2), inset 0 1px 2px rgba(#000, 0.2);
+}
+
+.note {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  flex-flow: column;
+  position: relative;
+}
+
+.key-command, .noteName {
+  pointer-events: none;
+  flex: 1;
+}
+
+.keyCommand {
+
+  margin-top: 4px;
+
+}
+
+.noteName {
+  display: flex;
+  flex-flow: column;
+  justify-content: flex-end;
+}
+
+.black {
+  z-index: 2;
+  overflow: hidden;
+  height: 60%;
+  color: lightgray;
+  background: linear-gradient(-20deg, $black-key, $black-key-l, $black-key-d);
+  box-shadow: inset 0px -1px 2px rgba(#fff, 0.4), 0 4px 2px rgba(#000, 0.4);
+  width: 3%;
+  margin: 0 -1.5%;
+  padding-bottom: 6px;
+  border-style: solid;
+  border-width: 1px 2px 8px;
+  border-color: $black-key $black-key $black-key-d $black-key-l;
+
+  &:active, &.active {
+    border-top-width: 0;
+    border-bottom-width: 5px;
+    box-shadow: inset 0px -1px 2px rgba(#fff, 0.4), 0 2px 2px rgba(#000, 0.4);
+  }
+
+}
+
+.white {
+  border: 1px solid rgba(#000, 0.1);
+  padding: 0 1.5% 1% 0;
+  background: linear-gradient($white-key, $white-key-l, $white-key-d);
+  box-shadow: inset 0 1px 0px #fff, inset 0 -1px 0px #fff, inset 1px 0px 0px #fff, inset -1px 0px 0px #fff, 0 4px 3px rgba(0, 0, 0, 0.7);
+  z-index: 1;
+
+  &.active {
+    box-shadow: inset 0 -3px 2px 0 rgba(#000, 0.1), inset 0 -10px 10px 0 rgba(#000, 0.1), 0 2px 3px rgba(0, 0, 0, 0.7);
+    padding-top: 3px;
+    border-bottom-color: rgba(#000, 0.1);
+  }
+
+  .black {
+    position: absolute;
+    top: -1px;
+    width: 60%;
+    margin: 0;
+    right: -30%;
+    z-index: 10;
+  }
+}
+
+.key_fix {
+
+  padding-left: 15%;
+}
+
+.chord {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #000000;
+}
+
+.chord:hover {
+  cursor: pointer;
+}
+
+#chordSelector {
+  display: flex;
+  flex: 1;
+  background: rgba(#000, 0.2);
+  padding: 10px;
+  box-shadow: inset 0 0 0 1px rgba(#fff, 0.2), inset 0 1px 2px rgba(#000, 0.2);
+}
+
+/* END
+----------------------------------- */
+.btn.off {
+  color: rgba(#fff, 0.3);
+  cursor: not-allowed;
+  pointer-events: none;
+
+  i {
+    color: inherit;
+  }
+}
+
+@each $c, $v in $btn-colors {
+  .btn-#{$c} {
+    i {
+      color: $v;
+
+    }
+
+    &.on, &:active {
+      background: darken($v, 15%);
+      box-shadow: inset 0 0 1px rgba(#fff, 0.2), inset 0 0 20px $v, 0 0 20px rgba(lighten($v, 15%), 0.5), 0 1px 1px 0 rgba(#000, 0.2), 0 1px 3px rgba(#000, 0.1);
+      i {
+        color: #fff;
+      }
+    }
+  }
+}
+
+#helpDiv {
+  line-height: 2.5;
+  display: none;
+}
+
+
+
