@@ -1,14 +1,16 @@
 chrome.action.onClicked.addListener(() => {
-  chrome.storage.sync.get((storageObj) => {
+  chrome.storage.sync.get(['width', 'height'], ({ width = 960, height = 400 }) => {
     chrome.windows.create({
       url: 'popup.html',
       type: 'popup',
-      width: Number(storageObj.width) || 960,
-      height: Number(storageObj.height) || 400,
-    })
-  })
-})
+      width: Number(width),
+      height: Number(height),
+    });
+  });
+});
 
-chrome.runtime.onInstalled.addListener((details) => {
-  details.reason == 'install' && chrome.storage.sync.set({ installed: true })
-})
+chrome.runtime.onInstalled.addListener(({ reason }) => {
+  if (reason === 'install') {
+    chrome.storage.sync.set({ installed: true });
+  }
+});
