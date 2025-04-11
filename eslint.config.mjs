@@ -19,6 +19,10 @@ export default defineConfig([{
     languageOptions: {
         globals: {
             ...globals.browser,
+            Mousetrap: "readonly",
+            Fifer: "readonly",
+            Howl: "readonly",
+            WebAudioRecorder: "readonly",
         },
 
         ecmaVersion: 12,
@@ -27,6 +31,7 @@ export default defineConfig([{
 
     rules: {
         "no-unused-vars": ["warn"],
+        "no-undef": "off",
         "no-console": "off",
     },
 }]);

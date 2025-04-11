@@ -32,21 +32,9 @@ let rndState = false;
 let sustainState = false;
 let clickState = false;
 
-let chordMatrix = []; // formerly `t`
 let mouseState = 0;
 
 let middleC = document.getElementById("comma");
-
-// Utility functions
-function hasClass(el, cls) {
-  return el.classList.contains(cls);
-}
-
-function removeClass(el, cls) {
-  if (el && el.classList) {
-    el.classList.remove(cls);
-  }
-}
 
 const eventHandler = {
   sendEvent(eventObj) {
@@ -314,16 +302,16 @@ const velocityHandler = {
       velocity <= 20
         ? 0.2
         : velocity <= 40
-        ? 0.4
-        : velocity <= 60
-        ? 0.6
-        : velocity <= 80
-        ? 0.7
-        : velocity <= 100
-        ? 0.8
-        : velocity <= 120
-        ? 0.9
-        : 1.0;
+          ? 0.4
+          : velocity <= 60
+            ? 0.6
+            : velocity <= 80
+              ? 0.7
+              : velocity <= 100
+                ? 0.8
+                : velocity <= 120
+                  ? 0.9
+                  : 1.0;
 
     volumeArray[noteName] = volume;
   },
