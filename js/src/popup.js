@@ -409,6 +409,7 @@ const midiHandler = {
 
     const noteName = noteArray[index];
     if (!ctx) ctx = new AudioContext();
+    ctx.resume(); // ensures it's running
 
     const isNoteOn = status === 144;
     const noteObj = {
