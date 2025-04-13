@@ -194,7 +194,7 @@ body {
 }
 
 .speaker {
-  width: 10%;
+  width: 25%;
   height: 100%;
 }
 
@@ -218,6 +218,10 @@ body {
 
 .buttons {
   display: flex;
+}
+
+#sustain{
+  width: 50%;
 }
 
 #octaveSelector {
