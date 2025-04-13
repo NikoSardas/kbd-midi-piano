@@ -1,5 +1,5 @@
 const idArray =
-  "z s x d c v g b h n j m comma l dot semicolon slash q two w three e four r t six y seven u i nine o zero p minus leftBrk oct1 oct2 oct3 oct4 click sustain save reset velDown velUp rndVel chord audioLoader".split(
+  "z s x d c v g b h n j m comma l dot semicolon slash q two w three e four r t six y seven u i nine o zero p minus leftBrk oct1 oct2 oct3 oct4 click sustain save reset velDown velUp".split(
     " "
   );
 
@@ -26,9 +26,8 @@ let volumeArray = [];
 let notePressed = false;
 let ctx; // AudioContext
 let previousTime;
-let currentOctave = 2;
+let currentOctave = Number(localStorage.selectedOct) || 2;
 
-let rndState = false;
 let sustainState = false;
 let clickState = false;
 
@@ -39,91 +38,80 @@ let middleC = document.getElementById("comma");
 const eventHandler = {
   sendEvent(eventObj) {
     const idIndex = idArray.indexOf(eventObj.id);
+    const isNoteKey = idIndex >= 0 && idIndex < 36;
 
-    if (idIndex >= 0 && idIndex < 36) {
-      notesHandler.runNote(idIndex, eventObj);
+    if (isNoteKey) {
+      notesHandler.handleNoteEvent(idIndex, eventObj);
       return;
     }
 
-    // UI control buttons (click, sustain, save, etc.)
-    if (
-      ["mouseenter", "mousedown", "keydown", "touchstart"].includes(
-        eventObj.type
-      )
-    ) {
-      switch (idIndex) {
-        case 36:
-        case 37:
-        case 38:
-        case 39:
-          pitchHandler.changeOct(idIndex - 36);
-          break;
-        case 40:
-          clickHandler.toggle();
-          break;
-        case 41:
-          sustainHandler.toggle();
-          break;
-        case 42:
-          midiHandler.exportMidi();
-          break;
-        case 43:
-          location.reload();
-          break;
-        case 44:
-          velocityHandler.velocityChangeHandler({
-            type: eventObj.type,
-            val: -10,
-          });
-          break;
-        case 45:
-          velocityHandler.velocityChangeHandler({
-            type: eventObj.type,
-            val: 10,
-          });
-          break;
-        case 46:
-          velocityHandler.toggleRnd();
-          break;
-        case 47:
-          audioLoader.createLoad();
-          break;
-        case 48:
-          helpTutorial();
-          break;
-      }
+    const isActiveEvent = [
+      "mouseenter",
+      "mousedown",
+      "keydown",
+      "touchstart",
+    ].includes(eventObj.type);
+
+    if (isActiveEvent) {
+      const controlMap = {
+        36: () => pitchHandler.changeOct(0),
+        37: () => pitchHandler.changeOct(1),
+        38: () => pitchHandler.changeOct(2),
+        39: () => pitchHandler.changeOct(3),
+        40: () => clickHandler.toggle(),
+        41: () => sustainHandler.toggle(),
+        42: () => midiHandler.exportMidi(),
+        43: () => location.reload(),
+        44: (t) => velocityHandler.velocityChangeHandler({ type: t, val: -10 }),
+        45: (t) => velocityHandler.velocityChangeHandler({ type: t, val: 10 }),
+      };
+
+      const handler = controlMap[idIndex];
+      if (handler) handler(eventObj.type);
     }
   },
 
   catchEvent(event) {
     const eventObj = { type: event.type };
+    const isPointerEvent = [
+      "mousedown",
+      "mouseover",
+      "mouseup",
+      "touchstart",
+      "touchend",
+    ].includes(event.type);
+    const isNoteKey = idArray.indexOf(event.target.id) < 36;
+    const isMouseOverNote =
+      event.type === "mouseover" && mouseState && isNoteKey;
+    const isMouseOutNote = event.type === "mouseout" && mouseState && isNoteKey;
+    const isKeyboardEvent = ["keyup", "keydown"].includes(event.type);
 
-    if (
-      ["mousedown", "mouseover", "mouseup", "touchstart", "touchend"].includes(
-        event.type
-      )
-    ) {
+    if (isPointerEvent) {
       eventObj.id = event.target.id;
-    } else if (["keyup", "keydown"].includes(event.type)) {
+    } else if (isKeyboardEvent) {
       const index = keyArray.indexOf(event.keyCode);
       eventObj.id = idArray[index];
     }
 
-    if (event.type === "mouseover" && mouseState) {
-      eventObj.type = "mousedown";
-      eventObj.id = event.target.id;
-      if (idArray.indexOf(eventObj.id) < 36) {
-        eventHandler.sendEvent(eventObj);
-      }
-    } else if (event.type === "mouseout" && mouseState) {
-      eventObj.type = "mouseup";
-      eventObj.id = event.target.id;
-      if (idArray.indexOf(eventObj.id) < 36) {
-        eventHandler.sendEvent(eventObj);
-      }
-    } else {
-      eventHandler.sendEvent(eventObj);
+    if (isMouseOverNote) {
+      eventHandler.sendEvent({
+        ...eventObj,
+        type: "mousedown",
+        id: event.target.id,
+      });
+      return;
     }
+
+    if (isMouseOutNote) {
+      eventHandler.sendEvent({
+        ...eventObj,
+        type: "mouseup",
+        id: event.target.id,
+      });
+      return;
+    }
+
+    eventHandler.sendEvent(eventObj);
   },
 
   setListeners() {
@@ -138,11 +126,9 @@ const eventHandler = {
       "mouseover",
     ];
 
-    const body = document.querySelector("body");
-
-    for (const evt of events) {
-      body.addEventListener(evt, eventHandler.catchEvent);
-    }
+    events.forEach((evt) =>
+      document.body.addEventListener(evt, eventHandler.catchEvent)
+    );
 
     // Arrow key and modifier bindings
     Mousetrap.bind("right", () => {
@@ -168,51 +154,61 @@ const eventHandler = {
 };
 
 const notesHandler = {
-  sendNote(noteObj) {
-    noteObj.velocity = velocityHandler.setRandomVel(
-      noteObj.velocity,
-      noteObj.delta
-    );
-
+  recordEvent(noteObj) {
     // Default duration for key-off events
-    if (noteObj.velocity === 0 && noteObj.delta === 0) {
+    const isKeyOff = noteObj.velocity === 0;
+    const isMissingDelta = noteObj.delta === 0;
+    if (isKeyOff && isMissingDelta) {
       noteObj.delta = 8;
     }
 
     sessionArray.push(noteObj);
   },
 
-  animateNote(id) {
+  setKeyActiveVisual(id, isActive) {
     const noteEl = document.getElementById(id);
     if (!noteEl) return;
 
-    noteEl.classList.toggle("active");
+    isActive
+      ? noteEl.classList.add("active")
+      : noteEl.classList.remove("active");
   },
 
-  playAudio(midiNote, velocity, index) {
+  playNoteAudio(midiNote, velocity, index) {
     const noteName = noteArray[midiArray.indexOf(midiNote)];
+    const isNoteOn = Number(velocity) !== 0;
+
     velocityHandler.setVol(noteName);
 
-    if (Number(velocity) !== 0) {
+    function playNote() {
       monoArray[index] = new Howl({
         src: [`audio/${noteName}.mp3`],
         volume: volumeArray[noteName],
       });
       monoArray[index].play();
-    } else if (!sustainState) {
-      monoArray[index]?.fade(volumeArray[noteName], 0, 200);
     }
+
+    function fadeNote() {
+      if (!sustainState) {
+        monoArray[index]?.fade(volumeArray[noteName], 0, 200);
+      }
+    }
+
+    isNoteOn ? playNote() : fadeNote();
   },
 
-  noteConstructor(event) {
-    if (sessionArray.length === 0) {
-      ctx = new AudioContext();
-      previousTime = ctx.currentTime;
-
-      // Unlock UI buttons
+  createNoteData(event) {
+    const isSessionEmpty = sessionArray.length === 0;
+    function unlockControls() {
       document.getElementById("save").style.opacity = "1";
       document.getElementById("reset").disabled = false;
       document.getElementById("saveFa").style.color = "";
+    }
+
+    if (isSessionEmpty) {
+      ctx = new AudioContext();
+      previousTime = ctx.currentTime;
+      unlockControls();
     }
 
     const pitch = pitchHandler.getPitch(event.id);
@@ -225,22 +221,21 @@ const notesHandler = {
     return { pitch, velocity, delta, type: 9, channel: 0 };
   },
 
-  runNote(index, eventObj) {
-    const noteObj = notesHandler.noteConstructor(eventObj);
+  handleNoteEvent(index, eventObj) {
+    const noteObj = notesHandler.createNoteData(eventObj);
+    const isNoteOn = noteObj.velocity !== 0;
+    const isNewNote = !audioArray[index];
 
-    if (noteObj.velocity !== 0) {
-      if (!audioArray[index]) {
-        notePressed = audioArray[index] = true;
-        notesHandler.playAudio(noteObj.pitch, noteObj.velocity, index);
-        notesHandler.animateNote(eventObj.id);
-        notesHandler.sendNote(noteObj);
-      }
-    } else {
+    if (isNoteOn && isNewNote) {
+      notePressed = audioArray[index] = true;
+      this.playNoteAudio(noteObj.pitch, noteObj.velocity, index);
+      this.setKeyActiveVisual(eventObj.id, true);
+      this.recordEvent(noteObj);
+    } else if (!isNoteOn) {
       notePressed = audioArray[index] = false;
-      notesHandler.playAudio(noteObj.pitch, 0, index);
-      notesHandler.animateNote(eventObj.id);
-      notesHandler.sendNote(noteObj);
-      document.getElementById(eventObj.id)?.classList.remove("active");
+      this.playNoteAudio(noteObj.pitch, 0, index);
+      this.setKeyActiveVisual(eventObj.id, false);
+      this.recordEvent(noteObj);
     }
   },
 };
@@ -250,7 +245,8 @@ const pitchHandler = {
     const index = idArray.indexOf(id);
     if (index === -1) return null;
 
-    const midiIndex = index + currentOctave * 12;
+    const octaveOffset = currentOctave * 12;
+    const midiIndex = index + octaveOffset;
     return midiArray[midiIndex];
   },
 
@@ -266,8 +262,13 @@ const pitchHandler = {
       3: "z",
     };
 
-    middleC = middleCMap[oct] ? document.getElementById(middleCMap[oct]) : null;
-    if (middleC) middleC.classList.add("middleC");
+    const id = middleCMap[oct];
+    if (!id) return;
+
+    middleC = document.getElementById(id);
+    if (!middleC) return;
+
+    middleC.classList.add("middleC");
 
     if (!notePressed) {
       Array.from(octaveButtons).forEach((btn, i) => {
@@ -293,44 +294,33 @@ const velocityHandler = {
       document.getElementById("velocityValue")?.innerText || "100",
       10
     );
-    return Math.max(0, Math.min(127, val)); // Clamp between 0–127
+    return Math.max(0, Math.min(127, val));
   },
 
   setVol(noteName) {
     const velocity = velocityHandler.getCurrentVelocity();
-    const volume =
-      velocity <= 20
-        ? 0.2
-        : velocity <= 40
-          ? 0.4
-          : velocity <= 60
-            ? 0.6
-            : velocity <= 80
-              ? 0.7
-              : velocity <= 100
-                ? 0.8
-                : velocity <= 120
-                  ? 0.9
-                  : 1.0;
+    const thresholds = [20, 40, 60, 80, 100, 120];
+    const volumes = [0.2, 0.4, 0.6, 0.7, 0.8, 0.9, 1.0];
+
+    let volume = volumes[volumes.length - 1];
+    for (let i = 0; i < thresholds.length; i++) {
+      if (velocity <= thresholds[i]) {
+        volume = volumes[i];
+        break;
+      }
+    }
 
     volumeArray[noteName] = volume;
-  },
-
-  setRandomVel(velocity) {
-    if (!rndState || velocity === 0) return velocity;
-
-    const randomMod = velocityHandler.getRandomModifier();
-    const randomized = velocity + randomMod;
-
-    return Math.max(1, Math.min(127, randomized)); // Clamp to valid MIDI velocity
   },
 
   velocityChangeHandler({ val }) {
     const current = velocityHandler.getCurrentVelocity();
 
-    let step = current === 127 || current === 120 ? 7 : 10;
-    const newVal = val < 0 ? current - step : current + step;
+    let step = 10;
+    if (current === 127 && val < 0) step = 7; // 127 → 120
+    if (current === 120 && val > 0) step = 7; // 120 → 127
 
+    const newVal = val < 0 ? current - step : current + step;
     velocityHandler.changeVel(newVal);
   },
 
@@ -343,12 +333,6 @@ const velocityHandler = {
     localStorage.velocity = clamped;
   },
 
-  toggleRnd() {
-    const btn = document.getElementById("rndVel");
-    rndState = !rndState;
-    btn.classList.toggle("on", rndState);
-  },
-
   getVel(eventType) {
     return ["mouseenter", "mousedown", "keydown", "touchstart"].includes(
       eventType
@@ -356,18 +340,11 @@ const velocityHandler = {
       ? velocityHandler.getCurrentVelocity()
       : 0;
   },
-
-  getRandomModifier() {
-    const randomAmount = Math.floor(Math.random() * 10); // 0–9
-    return Math.random() > 0.5 ? randomAmount : -randomAmount;
-  },
 };
 
 const clickHandler = {
   init() {
-    Fifer.loaded(() => {
-      Fifer.registerAudio("click", "/audio/click.mp3", false);
-    });
+    Fifer.loaded(() => {}).registerAudio("click", "/audio/click.mp3", false);
   },
 
   play() {
@@ -402,33 +379,9 @@ const sustainHandler = {
   },
 };
 
-const audioLoader = {
-  init() {
-    const fileInput = document.getElementById("KBD_Piano_audioFile");
-    const audioPlayer = document.getElementById("KBD_Piano_audioControls");
-
-    if (!fileInput || !audioPlayer) return;
-
-    fileInput.addEventListener("change", (event) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        audioPlayer.src = e.target.result;
-        audioPlayer.style.display = "flex";
-      };
-      reader.readAsDataURL(file);
-    });
-  },
-
-  createLoad() {
-    document.getElementById("KBD_Piano_audioFile")?.click();
-  },
-};
-
 const midiHandler = {
   init() {
+    // Exit if browser doesn't support Web MIDI API
     if (!navigator.requestMIDIAccess) return;
 
     navigator
@@ -441,12 +394,12 @@ const midiHandler = {
     const midiDiv = document.getElementById("midiDiv");
     const inputs = Array.from(access.inputs.values());
 
-    // Rebuild dropdown
-    selector.innerHTML = "";
+    selector.innerHTML = ""; // Clear existing options
+
     inputs.forEach((input, i) => {
       const option = document.createElement("option");
       option.value = input.id;
-      option.text = input.name;
+      option.textContent = input.name;
       selector.appendChild(option);
 
       if (input.id === localStorage.midiPort) {
@@ -456,9 +409,8 @@ const midiHandler = {
       }
     });
 
-    midiDiv.style.display = inputs.length > 0 ? "flex" : "none";
+    midiDiv.style.display = inputs.length ? "flex" : "none";
 
-    // Update selected port
     selector.addEventListener("change", () => {
       const selected = selector.selectedOptions[0];
       const device = inputs.find((i) => i.id === selected.value);
@@ -467,7 +419,7 @@ const midiHandler = {
       if (device) device.onmidimessage = midiHandler.handleMIDIMessage;
     });
 
-    access.onstatechange = () => midiHandler.init(); // refresh on connect/disconnect
+    access.onstatechange = () => midiHandler.init();
   },
 
   onMIDIFailure(err) {
@@ -478,21 +430,19 @@ const midiHandler = {
     const [status, note, velocity] = msg.data;
     const isNote =
       (status === 144 || status === 128) && note >= 24 && note <= 95;
-
     if (!isNote) return;
 
     const pitchHex = "0x" + note.toString(16).toUpperCase();
     const index = midiArray.indexOf(parseInt(pitchHex, 16));
-    const noteName = noteArray[index];
-
     if (index === -1) return;
 
-    // Start audio context if needed
+    const noteName = noteArray[index];
     if (!ctx) ctx = new AudioContext();
 
+    const isNoteOn = status === 144;
     const noteObj = {
       pitch: pitchHex,
-      velocity: status === 144 ? velocity : 0,
+      velocity: isNoteOn ? velocity : 0,
       delta: Math.floor((ctx.currentTime - (previousTime || 0)) / 0.00390625),
       channel: 0,
       type: 9,
@@ -500,13 +450,13 @@ const midiHandler = {
 
     previousTime = ctx.currentTime;
 
-    if (sessionArray.length === 0) {
+    const isSessionEmpty = sessionArray.length === 0;
+    if (isSessionEmpty) {
       document.getElementById("save").style.opacity = "1";
       document.getElementById("reset").disabled = false;
       document.getElementById("saveFa").style.color = "";
     }
 
-    // Play audio
     if (noteObj.velocity !== 0) {
       audioArray[index] = new Howl({
         src: [`audio/${noteName}.mp3`],
@@ -517,9 +467,8 @@ const midiHandler = {
       audioArray[index]?.fade(audioArray[index]._volume, 0, 200);
     }
 
-    // Highlight key visually
     const id = pitchHandler.resolveDOMKey(index);
-    if (id) notesHandler.animateNote(id);
+    if (id) notesHandler.setKeyActiveVisual(id, true);
 
     sessionArray.push(noteObj);
   },
@@ -527,74 +476,29 @@ const midiHandler = {
   exportMidi() {
     if (sessionArray.length < 2) return;
 
-    const events = [];
-    sessionArray.forEach((note) => {
-      Array.prototype.push.apply(events, MidiEvent.createNote(note));
-    });
-
+    const events = sessionArray.flatMap((note) => MidiEvent.createNote(note));
     const track = new MidiTrack({ events });
     MidiWriter({ tracks: [track] }).save();
   },
 };
 
 const recordHandler = {
-  micRecorder: null,
   streamRecorder: null,
 
   init() {
-    this.setupMicRecorder();
     this.setupStreamRecorder();
-  },
-
-  setupMicRecorder() {
-    const micBtn = document.getElementById("rec");
-    if (!micBtn) return;
-
-    micBtn.addEventListener("click", async () => {
-      const isRecording = micBtn.classList.contains("on");
-
-      if (isRecording) {
-        micBtn.classList.remove("on");
-        recordHandler.micRecorder?.finishRecording();
-        return;
-      }
-
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-        });
-        const audioCtx = new AudioContext();
-        const source = audioCtx.createMediaStreamSource(stream);
-
-        const recorder = new WebAudioRecorder(source, {
-          workerDir: "../js/", // make sure this path is valid
-        });
-
-        recorder.setEncoding("wav");
-        recorder.onComplete = recordHandler.saveBlob;
-        recorder.startRecording();
-
-        recordHandler.micRecorder = recorder;
-        micBtn.classList.add("on");
-      } catch (err) {
-        console.error("Mic recording failed:", err);
-      }
-    });
   },
 
   setupStreamRecorder() {
     const streamBtn = document.getElementById("recStreamBtn");
     if (!streamBtn) return;
 
-    streamBtn.addEventListener("click", () => {
-      const isRecording = streamBtn.classList.contains("on");
+    const stopRecording = () => {
+      streamBtn.classList.remove("on");
+      recordHandler.streamRecorder?.finishRecording();
+    };
 
-      if (isRecording) {
-        streamBtn.classList.remove("on");
-        recordHandler.streamRecorder?.finishRecording();
-        return;
-      }
-
+    const startRecording = () => {
       const audioCtx = new AudioContext();
       const dest = Howler.ctx.createMediaStreamDestination();
       Howler.masterGain.connect(dest);
@@ -606,59 +510,69 @@ const recordHandler = {
       });
 
       recorder.setEncoding("wav");
-      recorder.onComplete = recordHandler.saveBlob;
+      recorder.onComplete = (recorder, blob) => {
+        recordHandler.saveBlob(blob);
+      };
       recorder.startRecording();
 
       recordHandler.streamRecorder = recorder;
       streamBtn.classList.add("on");
+    };
+
+    streamBtn.addEventListener("click", () => {
+      const isRecording = streamBtn.classList.contains("on");
+      isRecording ? stopRecording() : startRecording();
     });
   },
 
-  saveBlob(recorder, blob) {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `KBD2MIDI_PIANO_${new Date().toISOString()}.wav`;
-    a.click();
+  saveBlob(blob) {
+    if (!(blob instanceof Blob)) {
+      console.error("Invalid blob:", blob);
+      return;
+    }
+
+    const downloadURL = URL.createObjectURL(blob);
+    const downloadLink = document.createElement("a");
+    downloadLink.href = downloadURL;
+    downloadLink.download = `KBD2MIDI_PIANO_${new Date().toISOString()}.wav`;
+    downloadLink.click();
+    URL.revokeObjectURL(downloadURL);
   },
 };
 
 document.addEventListener("DOMContentLoaded", () => {
   const loadingBar = document.getElementById("loadingBar");
-  const loadingCont = document.getElementById("loadingCont");
-  const loadingDiv = document.getElementById("loading");
-  const pianoWrapper = document.getElementById("pianoWrapper");
+  const loadingContainer = document.getElementById("loadingCont");
+  const loadingText = document.getElementById("loading");
+  const pianoUI = document.getElementById("pianoWrapper");
 
-  let counter = 0;
+  let loadedCount = 0;
 
-  // Mouse state handling
-  document.body.onmousedown = () => {
-    mouseState = 1;
-  };
-  document.body.onmouseup = () => {
-    mouseState = 0;
-  };
+  // Track mouse state globally
+  document.body.onmousedown = () => (mouseState = 1);
+  document.body.onmouseup = () => (mouseState = 0);
   document.querySelector("html").addEventListener("mouseleave", () => {
     mouseState = 0;
   });
 
-  // White key z-index (prevent overlap flicker)
-  document.querySelectorAll(".white").forEach((el, i, arr) => {
-    el.style.zIndex = arr.length - i;
+  // Ensure white keys are stacked in correct order
+  document.querySelectorAll(".white").forEach((key, i, allKeys) => {
+    key.style.zIndex = allKeys.length - i;
   });
 
-  // Save screen size + selected octave
+  // Store window size and selected octave before exit
   window.onbeforeunload = () => {
     localStorage.width = window.outerWidth;
     localStorage.height = window.outerHeight;
     localStorage.selectedOct = currentOctave;
   };
 
-  // Init app state
   const initApp = () => {
     document.getElementById("version").innerText =
       chrome.runtime.getManifest().version;
+
     pitchHandler.changeOct(Number(localStorage.selectedOct || 2));
+
     if (localStorage.sustain === "true") sustainHandler.toggle();
     if (localStorage.velocity) {
       document.getElementById("velocityValue").innerText =
@@ -666,7 +580,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     midiHandler.init();
-    audioLoader.init();
     clickHandler.init();
     recordHandler.init();
     eventHandler.setListeners();
@@ -679,23 +592,22 @@ document.addEventListener("DOMContentLoaded", () => {
         html5: false,
         volume: 0,
         onload() {
-          this.play(); // prime it
-          counter++;
-          loadingDiv.innerText = `Loading ${counter}/72`;
+          this.play();
+          loadedCount++;
+          loadingText.innerText = `Loading ${loadedCount}/72`;
           loadingBar.style.backgroundSize = `${Math.ceil(
-            (100 * counter) / noteArray.length
+            (100 * loadedCount) / noteArray.length
           )}% 100%`;
 
-          if (counter === noteArray.length) {
-            loadingCont.style.display = "none";
-            pianoWrapper.style.display = "flex";
+          if (loadedCount === noteArray.length) {
+            loadingContainer.style.display = "none";
+            pianoUI.style.display = "flex";
           }
         },
       });
     });
   };
 
-  // Run it all
   initApp();
   preloadAudio();
 });
