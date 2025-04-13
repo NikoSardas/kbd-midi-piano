@@ -1,5 +1,5 @@
 const idArray =
-  "z s x d c v g b h n j m comma l dot semicolon slash q two w three e four r t six y seven u i nine o zero p minus leftBrk oct1 oct2 oct3 oct4 click sustain save reset velDown velUp".split(
+  "z s x d c v g b h n j m comma l dot semicolon slash q two w three e four r t six y seven u i nine o zero p minus leftBrk oct1 oct2 oct3 oct4 sustain save reset velDown velUp".split(
     " "
   );
 
@@ -29,7 +29,6 @@ let previousTime;
 let currentOctave = Number(localStorage.selectedOct) || 2;
 
 let sustainState = false;
-let clickState = false;
 
 let mouseState = 0;
 
@@ -58,7 +57,6 @@ const eventHandler = {
         37: () => pitchHandler.changeOct(1),
         38: () => pitchHandler.changeOct(2),
         39: () => pitchHandler.changeOct(3),
-        40: () => clickHandler.toggle(),
         41: () => sustainHandler.toggle(),
         42: () => midiHandler.exportMidi(),
         43: () => location.reload(),
@@ -342,33 +340,6 @@ const velocityHandler = {
   },
 };
 
-const clickHandler = {
-  init() {
-    Fifer.loaded(() => {}).registerAudio("click", "/audio/click.mp3", false);
-  },
-
-  play() {
-    Fifer.play("click", true); // loop
-  },
-
-  stop() {
-    Fifer.stop("click");
-  },
-
-  toggle() {
-    const clickBtn = document.getElementById("click");
-    clickState = !clickState;
-
-    if (clickState) {
-      clickBtn.classList.add("on");
-      clickHandler.play();
-    } else {
-      clickBtn.classList.remove("on");
-      clickHandler.stop();
-    }
-  },
-};
-
 const sustainHandler = {
   toggle() {
     const btn = document.getElementById("sustain");
@@ -580,7 +551,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     midiHandler.init();
-    clickHandler.init();
     recordHandler.init();
     eventHandler.setListeners();
   };
