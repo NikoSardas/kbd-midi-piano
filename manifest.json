@@ -14,7 +14,7 @@
   "icons": {
     "128": "style/icons/icon128.png"
   },
-  "minimum_chrome_version": "38",
+  "minimum_chrome_version": "88",
   "offline_enabled": true,
   "permissions": ["storage"]
 }

@@ -1,48 +1,48 @@
 # KBD to MIDI Piano
 
-A cleaned-up Chrome extension that turns your keyboard into a MIDI piano, with audio playback, recording, velocity control, and MIDI export.
+A modernized Chrome extension that turns your keyboard into a MIDI piano, with real-time audio playback, MIDI input, velocity control, and export options.
 
-Originally a legacy personal tool, this project has been fully modernized with modular JavaScript, structured handlers, and better event flow. All chord and bloat features removed—this version focuses on core usability.
+Fully rebuilt with modular, readable JavaScript. Focused on performance and usability—no chords, no legacy clutter.
 
 ---
 
 ## Features
 
 - 🎹 Play notes using your keyboard
-- 🎧 Real-time audio playback using Howler.js
-- 🔊 Velocity control (adjust or randomize)
-- ⬆️ MIDI input support
-- 🎤 Record mic or Howler stream to `.wav`
-- 🎼 Export recorded session to `.mid`
-- 📁 Load your own `.mp3`/`.wav` files
+- 🎧 Real-time audio via Howler.js
+- 🎛️ Velocity control with live updates
+- ⬆️ Web MIDI input support
+- 🎤 Record WebAudio output to `.wav`
+- 🎼 Export sessions to `.mid`
+- 🧰 Built-in velocity and sustain tools
 
 ---
 
 ## Structure
 
-- `popup.html` — Main UI layout
-- `popup.js` — Core logic, fully modularized
-- `manifest.json` — Extension config
-- `audio/` — Preloaded piano notes
-- `lib/` — WebAudioRecorder, MIDI export libraries, etc.
+- `popup.html` — UI and layout
+- `popup.js` — Fully modularized logic
+- `manifest.json` — Extension metadata
+- `audio/` — Preloaded piano samples
+- `lib/` — WebAudioRecorder, MIDI export
 
 ---
 
 ## Status
 
-This is a working rebuild of the original extension—functionally stable and cleaned up for maintainability. No frameworks or bundlers yet, just modern vanilla JavaScript.
+Actively maintained and working as intended. Uses modern vanilla JavaScript—no bundlers, no frameworks. Clean and modular codebase.
 
 ---
 
 ## Roadmap
 
-- [ ] Break into ES modules
-- [ ] Use Vite for build/dev
-- [ ] Polish UI (optional)
+- [ ] Optional: break into native ES modules
+- [ ] Optional: migrate to Vite or similar
+- [ ] Optional: visual polish / accessibility
 
 ---
 
 ## License
 
-MIT License.  
+MIT License  
 See the [LICENSE](./LICENSE) file for details.
