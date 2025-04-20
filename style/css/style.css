@@ -220,10 +220,6 @@ body {
   display: flex;
 }
 
-#sustain{
-  width: 50%;
-}
-
 #octaveSelector {
   flex: 1;
   align-items: stretch;
@@ -343,14 +339,13 @@ body {
   }
 }
 
-.velocityDigits{
-    color: rgba(0, 0, 0, 0.4);
-    font-size: 40px;
-    font-family: "tfb";
+.velocityDigits {
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 40px;
+  font-family: "tfb";
 }
 
 #velocityValue {
-  
   margin: 0 10px;
   width: 35px;
   justify-content: flex-end;

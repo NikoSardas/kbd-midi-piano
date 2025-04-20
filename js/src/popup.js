@@ -57,14 +57,16 @@ const eventHandler = {
         37: () => pitchHandler.changeOct(1),
         38: () => pitchHandler.changeOct(2),
         39: () => pitchHandler.changeOct(3),
-        41: () => sustainHandler.toggle(),
-        42: () => midiHandler.exportMidi(),
-        43: () => location.reload(),
-        44: (t) => velocityHandler.velocityChangeHandler({ type: t, val: -10 }),
-        45: (t) => velocityHandler.velocityChangeHandler({ type: t, val: 10 }),
+        40: () => sustainHandler.toggle(),
+        41: () => midiHandler.exportMidi(),
+        42: () => location.reload(),
+        43: (t) => velocityHandler.velocityChangeHandler({ type: t, val: -10 }),
+        44: (t) => velocityHandler.velocityChangeHandler({ type: t, val: 10 }),
       };
 
       const handler = controlMap[idIndex];
+      console.log(idIndex);
+
       if (handler) handler(eventObj.type);
     }
   },
@@ -199,7 +201,6 @@ const notesHandler = {
     const isSessionEmpty = sessionArray.length === 0;
     function unlockControls() {
       document.getElementById("save").style.opacity = "1";
-      document.getElementById("reset").disabled = false;
       document.getElementById("saveFa").style.color = "";
     }
 
@@ -261,12 +262,16 @@ const pitchHandler = {
     };
 
     const id = middleCMap[oct];
-    if (!id) return;
 
-    middleC = document.getElementById(id);
-    if (!middleC) return;
-
-    middleC.classList.add("middleC");
+    if (id) {
+      const newMiddleC = document.getElementById(id);
+      if (newMiddleC) {
+        newMiddleC.classList.add("middleC");
+        middleC = newMiddleC;
+      }
+    } else {
+      middleC = null; // clear reference if not set
+    }
 
     if (!notePressed) {
       Array.from(octaveButtons).forEach((btn, i) => {
@@ -425,7 +430,6 @@ const midiHandler = {
     const isSessionEmpty = sessionArray.length === 0;
     if (isSessionEmpty) {
       document.getElementById("save").style.opacity = "1";
-      document.getElementById("reset").disabled = false;
       document.getElementById("saveFa").style.color = "";
     }
 
