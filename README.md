@@ -34,14 +34,6 @@ Actively maintained and working as intended. Uses modern vanilla JavaScript—no
 
 ---
 
-## Roadmap
-
-- [ ] Optional: break into native ES modules
-- [ ] Optional: migrate to Vite or similar
-- [ ] Optional: visual polish / accessibility
-
----
-
 ## License
 
 MIT License  
